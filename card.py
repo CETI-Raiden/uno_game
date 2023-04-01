@@ -21,7 +21,7 @@ class Card:
     def is_playable_on(self, other_card):
         if self.color == other_card.color:
             return True
-        elif isinstance(self, (WildCard, Wild, DrawFour)):
+        elif isinstance(self, (WildCard, Color, DrawFour)):
             return True
         elif self.number == other_card.number and self.color in constants.CARD_COLORS:
             return True
@@ -35,9 +35,9 @@ class Card:
             return False
 
     def can_chain_draw(self, other_card):
-        if isinstance(self, (WildCard, Wild, DrawFour)) and self.number == other_card.number:
+        if isinstance(self, DrawFour):
             return True
-        elif isinstance(self, PlusTwo) and (self.color == other_card.color or isinstance(other_card, PlusTwo)):
+        elif isinstance(self, PlusTwo) and (isinstance(other_card, PlusTwo) or other_card.number == "+2"):
             return True
         else:
             return False
@@ -57,20 +57,18 @@ class WildCard(Card):
 
 
 class DrawFour(WildCard):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, value):
+        super().__init__(value)
         # self.value = constants.WILD_CARD_POINTS[constants.WILD_CARDS[1]]
-        self.number = constants.WILD_CARDS[1]
 
     def __str__(self):
         return f"{self.color} {self.number}"
 
 
-class Wild(WildCard):
-    def __init__(self):
-        super().__init__()
+class Color(WildCard):
+    def __init__(self, value):
+        super().__init__(value)
         # self.value = constants.WILD_CARD_POINTS[constants.WILD_CARDS[0]]
-        self.number = constants.WILD_CARDS[0]
 
     def __str__(self):
         return f"{self.color} {self.number}"
@@ -78,9 +76,9 @@ class Wild(WildCard):
 
 class Skip(Card):
     def __init__(self, color):
-        super().__init__(color, "Skip")
+        super().__init__(color, constants.CARD_SPECIAL_VALUES[0])
         # self.value = constants.CARD_POINTS["Skip"]
-        self.number = "Skip"
+        self.number = constants.CARD_SPECIAL_VALUES[0]
 
     def __str__(self):
         return f"{self.color} {self.number}"
@@ -88,9 +86,9 @@ class Skip(Card):
 
 class Reverse(Card):
     def __init__(self, color):
-        super().__init__(color, "Reverse")
+        super().__init__(color, constants.CARD_SPECIAL_VALUES[1])
         # self.value = constants.CARD_POINTS["Reverse"]
-        self.number = "Reverse"
+        self.number = constants.CARD_SPECIAL_VALUES[1]
 
     def __str__(self):
         return f"{self.color} {self.number}"
@@ -98,9 +96,9 @@ class Reverse(Card):
 
 class PlusTwo(Card):
     def __init__(self, color):
-        super().__init__(color, "+2")
+        super().__init__(color, constants.CARD_SPECIAL_VALUES[2])
         # self.value = constants.CARD_POINTS["+2"]
-        self.number = "+2"
+        self.number = constants.CARD_SPECIAL_VALUES[2]
 
     def __str__(self):
         return f"{self.color} {self.number}"

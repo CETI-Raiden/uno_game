@@ -1,7 +1,7 @@
 import constants
 from deck import Deck
 from player import Player
-from card import WildCard
+from card import WildCard, DrawFour, Color
 
 
 class Game:
@@ -48,10 +48,8 @@ class Game:
         skip_next_player = False  # flag to skip the next player if a skip card is played
         while played_card is None:
             if self.cumulative_draw_count == 0:
-                print('debug_cum_0')
                 valid_cards = [card for card in self.current_player.hand if card.is_playable_on(self.current_card)]
             else:
-                print('debug_cum_high')
                 valid_cards = [card for card in self.current_player.hand if card.can_chain_draw(self.current_card)]
             if valid_cards:
                 played_card = self.current_player.choose_card(valid_cards)
@@ -59,7 +57,7 @@ class Game:
                 self.current_card = played_card
                 if len(self.current_player.hand) == 1:
                     print("UNO!")
-                if isinstance(played_card, WildCard):
+                if isinstance(played_card, (WildCard, DrawFour, Color)):
                     played_card.color = self.current_player.choose_color()
                 if played_card.color == constants.WILD_CARDS[0]:
                     self.deck.cards.append(self.current_card)
@@ -72,7 +70,6 @@ class Game:
                     skip_next_player = True  # set the flag to skip the next player
                     self.current_player = self.players[player_idx]
                 if played_card.number == constants.CARD_SPECIAL_VALUES[2] or played_card.number == constants.WILD_CARDS[1]:
-                    print('debug_chain')
                     if played_card.number == constants.CARD_SPECIAL_VALUES[2]:
                         self.cumulative_draw_count += 2
                     if played_card.number == constants.WILD_CARDS[1]:
@@ -86,10 +83,10 @@ class Game:
                         if played_card.number == constants.CARD_SPECIAL_VALUES[2]:
                             next_player = self.get_next_player()
                             next_player.add_cards([self.deck.draw_card() for _ in range(self.cumulative_draw_count)])
-                        if played_card.color == constants.WILD_CARDS[1]:
+                        if played_card.number == constants.WILD_CARDS[1]:
                             next_player = self.get_next_player()
                             next_player.add_cards([self.deck.draw_card() for _ in range(self.cumulative_draw_count)])
-                            played_card.color = self.current_player.choose_color()
+                            # played_card.color = self.current_player.choose_color()
                         self.cumulative_draw_count = 0
             else:
                 print(f"{self.current_player.name} has no valid cards to play and must draw a card.")

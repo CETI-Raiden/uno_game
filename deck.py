@@ -1,5 +1,5 @@
 import random
-from card import Card, WildCard
+from card import Card, Color, DrawFour, Skip, PlusTwo, Reverse
 import constants
 
 
@@ -24,13 +24,23 @@ class Deck:
             for value in constants.CARD_SPECIAL_VALUES:
                 for i in range(constants.NUMBER_OF_SPECIAL_CARDS):
                     # card_points = constants.CARD_POINTS[value]
-                    self.cards.append(Card(color, value))
+                    # self.cards.append(Card(color, value))
+                    if value == constants.CARD_SPECIAL_VALUES[0]:
+                        self.cards.append(Skip(color))
+                    elif value == constants.CARD_SPECIAL_VALUES[1]:
+                        self.cards.append(Reverse(color))
+                    elif value == constants.CARD_SPECIAL_VALUES[2]:
+                        self.cards.append(PlusTwo(color))
 
             # Add wild cards
         for value in constants.WILD_CARDS:
             for i in range(constants.NUMBER_OF_WILD_CARDS):
                 # card_points = constants.WILD_CARD_POINTS[value]
-                self.cards.append(WildCard(value))
+                # self.cards.append(WildCard(value))
+                if value == constants.WILD_CARDS[0]:
+                    self.cards.append(Color(value))
+                elif value == constants.WILD_CARDS[1]:
+                    self.cards.append(DrawFour(value))
 
     def shuffle(self):
         random.shuffle(self.cards)
