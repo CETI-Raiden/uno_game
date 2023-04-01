@@ -34,6 +34,14 @@ class Card:
         else:
             return False
 
+    def can_chain_draw(self, other_card):
+        if isinstance(self, (WildCard, Wild, DrawFour)) and self.number == other_card.number:
+            return True
+        elif isinstance(self, PlusTwo) and (self.color == other_card.color or isinstance(other_card, PlusTwo)):
+            return True
+        else:
+            return False
+
     def __str__(self):
         return f"{self.color} {self.number}"
 

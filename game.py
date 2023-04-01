@@ -14,6 +14,7 @@ class Game:
         self.current_card = None
         self.direction = 1
         self.winner = None
+        self.cumulative_draw_count = 0  # counter for stacking draw cards
         self.initialize_players()
 
     def initialize_players(self):
@@ -26,7 +27,7 @@ class Game:
                 player.add_cards([self.deck.draw_card()], initial_cards=True)
 
         self.current_card = self.deck.draw_card()
-        while self.current_card.color == constants.WILD_CARDS[0] or self.current_card.color == constants.WILD_CARDS[1]:
+        while self.current_card.number == constants.WILD_CARDS[0] or self.current_card.number == constants.WILD_CARDS[1]:
             self.deck.cards.append(self.current_card)
             self.deck.shuffle()
             self.current_card = self.deck.draw_card()
@@ -45,9 +46,13 @@ class Game:
     def play_turn(self):
         played_card = None
         skip_next_player = False  # flag to skip the next player if a skip card is played
-        cumulative_draw_count = 0  # counter for stacking draw cards
         while played_card is None:
-            valid_cards = [card for card in self.current_player.hand if card.is_playable_on(self.current_card)]
+            if self.cumulative_draw_count == 0:
+                print('debug_cum_0')
+                valid_cards = [card for card in self.current_player.hand if card.is_playable_on(self.current_card)]
+            else:
+                print('debug_cum_high')
+                valid_cards = [card for card in self.current_player.hand if card.can_chain_draw(self.current_card)]
             if valid_cards:
                 played_card = self.current_player.choose_card(valid_cards)
                 self.current_player.remove_cards([played_card])
@@ -66,13 +71,26 @@ class Game:
                     player_idx = self.players.index(self.current_player)
                     skip_next_player = True  # set the flag to skip the next player
                     self.current_player = self.players[player_idx]
-                if played_card.number == constants.CARD_SPECIAL_VALUES[2]:
+                if played_card.number == constants.CARD_SPECIAL_VALUES[2] or played_card.number == constants.WILD_CARDS[1]:
+                    print('debug_chain')
+                    if played_card.number == constants.CARD_SPECIAL_VALUES[2]:
+                        self.cumulative_draw_count += 2
+                    if played_card.number == constants.WILD_CARDS[1]:
+                        self.cumulative_draw_count += 4
+                    # We check if the next player is able to play a draw card.
                     next_player = self.get_next_player()
-                    next_player.add_cards([self.deck.draw_card() for _ in range(2)])
-                if played_card.color == constants.WILD_CARDS[1]:
-                    next_player = self.get_next_player()
-                    next_player.add_cards([self.deck.draw_card() for _ in range(4)])
-                    played_card.color = self.current_player.choose_color()
+                    check_chain = [card for card in next_player.hand if card.can_chain_draw(self.current_card)]
+                    if check_chain:
+                        continue
+                    else:
+                        if played_card.number == constants.CARD_SPECIAL_VALUES[2]:
+                            next_player = self.get_next_player()
+                            next_player.add_cards([self.deck.draw_card() for _ in range(self.cumulative_draw_count)])
+                        if played_card.color == constants.WILD_CARDS[1]:
+                            next_player = self.get_next_player()
+                            next_player.add_cards([self.deck.draw_card() for _ in range(self.cumulative_draw_count)])
+                            played_card.color = self.current_player.choose_color()
+                        self.cumulative_draw_count = 0
             else:
                 print(f"{self.current_player.name} has no valid cards to play and must draw a card.")
                 self.current_player.add_cards([self.deck.draw_card()])
