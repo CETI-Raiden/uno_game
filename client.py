@@ -30,8 +30,8 @@ if __name__ == '__main__':
     port = 5050
     client = Client(host, port)
     client.connect()
-    message = input("Enter message: ")
-    client.send_message(message)
+    # message = input("Enter message: ")
+    # client.send_message(message)
     response = client.receive_message()
     print(f"Response from server: {response}")
     client.close_connection()

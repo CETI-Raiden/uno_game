@@ -2,11 +2,11 @@ import constants
 from deck import Deck
 from player import Player
 from card import WildCard, DrawFour, Color
+from messages import Message
 
 
 class Game:
-    def __init__(self):
-        self.num_players = constants.MAX_PLAYERS
+    def __init__(self, players):
         self.deck = Deck()
         self.deck.shuffle()
         self.players = []
@@ -15,12 +15,14 @@ class Game:
         self.direction = 1
         self.winner = None
         self.cumulative_draw_count = 0  # counter for stacking draw cards
-        self.initialize_players()
+        self.message = Message(players)
+        self.initialize_players(players)
 
-    def initialize_players(self):
-        for i in range(self.num_players):
-            player_name = input("Enter player name: ")
-            self.players.append(Player(player_name, []))
+    def initialize_players(self, player_list):
+        for i in range(len(player_list)):
+            player_name = player_list[i]["name"]
+            player_hand = player_list[i]["hand"]
+            self.players.append(Player(player_name, player_hand))
 
         for i in range(constants.HAND_SIZE):
             for player in self.players:
@@ -34,10 +36,13 @@ class Game:
 
         self.current_player = self.players[0]
 
-    def start(self):
+    def start_game(self):
         while self.winner is None:
-            print(f"\nCurrent card: {self.current_card}")
-            print(f"Current player: {self.current_player}")
+            self.message.broadcast(f"Current card: {self.current_card}")
+            self.message.broadcast(f"\nCurrent player: {self.current_player.name}")
+            self.message.send_message(f"\nCurrent hand:\n", self.current_player)
+            for card in self.current_player.hand:
+                self.message.send_message(f"{card} -- ", self.current_player)
             self.play_turn()
             self.check_for_winner()
 
@@ -52,13 +57,13 @@ class Game:
             else:
                 valid_cards = [card for card in self.current_player.hand if card.can_chain_draw(self.current_card)]
             if valid_cards:
-                played_card = self.current_player.choose_card(valid_cards)
+                played_card = self.message.choose_card(valid_cards, self.current_player)
                 self.current_player.remove_cards([played_card])
                 self.current_card = played_card
                 if len(self.current_player.hand) == 1:
                     print("UNO!")
                 if isinstance(played_card, (WildCard, DrawFour, Color)):
-                    played_card.color = self.current_player.choose_color()
+                    played_card.color = self.message.choose_color(self.current_player)
                 if played_card.color == constants.WILD_CARDS[0]:
                     self.deck.cards.append(self.current_card)
                     self.deck.shuffle()

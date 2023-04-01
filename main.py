@@ -1,10 +1,11 @@
 from game import Game
+from server import Server
 
 
 def test_game():
     # Initialize game with 2 players
-    game = Game()
-    game.start()
+    server = Server()
+    server.start()
 
 
 test_game()
